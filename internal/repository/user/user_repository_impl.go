@@ -1,8 +1,10 @@
 package user
 
 import (
+	dbErrors "AvitoPRService/internal/db"
 	"AvitoPRService/internal/model"
 	"database/sql"
+	"errors"
 )
 
 type UserRepositoryImpl struct {
@@ -17,7 +19,10 @@ func (r *UserRepositoryImpl) SetIsActive(userId uint, isActive bool) (*model.Use
 	var user model.User
 	err := r.db.QueryRow("UPDATE users SET is_active = $1 WHERE id = $2 RETURNING id, username, team_name, is_active", isActive, userId).Scan(&user.ID, &user.Username, &user.TeamName, &user.IsActive)
 	if err != nil {
-		return &model.User{}, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, dbErrors.ErrUserNotFound
+		}
+		return nil, err
 	}
 	return &user, nil
 }

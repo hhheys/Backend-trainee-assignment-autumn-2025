@@ -2,6 +2,7 @@ package router
 
 import (
 	"AvitoPRService/internal/app"
+	"AvitoPRService/internal/security"
 
 	"github.com/gin-gonic/gin"
 )
@@ -9,5 +10,8 @@ import (
 func NewUserRouter(r *gin.Engine, app *app.App) {
 	g := r.Group("/users")
 
-	g.POST("/setIsActive")
+	g.POST("/setIsActive", security.AdminAuthReqired(app.Config), app.Handlers.UserHandler.SetIsActive)
+
+	// Временное решение для получения JWT токена пользователя.
+	g.POST("/getAccessToken", app.Handlers.UserHandler.GetAccessToken)
 }
