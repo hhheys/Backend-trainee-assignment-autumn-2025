@@ -5,6 +5,7 @@ import (
 	"AvitoPRService/internal/dto"
 	"AvitoPRService/internal/response"
 	errorResponse "AvitoPRService/internal/response/error_response"
+	"AvitoPRService/internal/security"
 	"AvitoPRService/internal/service/user"
 	"errors"
 	"net/http"
@@ -39,4 +40,21 @@ func (h *UserHandler) SetIsActive(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusOK, response.NewUserResponse(user))
+}
+
+// Временная версия, "заглушка". В проде реализовать адекватную авторизацию.
+func (h *UserHandler) GetAccessToken(c *gin.Context) {
+	var userGetAccessTokenDto dto.UserGetAccessTokenDto
+	err := c.ShouldBindJSON(&userGetAccessTokenDto)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, errorResponse.NewErrorResponse(errorResponse.BAD_REQUEST, "validation error"))
+		return
+	}
+	token, err := security.GenerateJWT(userGetAccessTokenDto.UserId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse.NewErrorResponse(errorResponse.INTERNAL_SERVER_ERROR, err.Error()))
+		return
+	}
+	c.SetCookie("access_token", token, 3600, "/", "", false, true)
+	c.AbortWithStatus(http.StatusAccepted)
 }

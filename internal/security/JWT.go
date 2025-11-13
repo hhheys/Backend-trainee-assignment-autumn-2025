@@ -1,7 +1,7 @@
 package security
 
 import (
-	"AvitoPRService/internal/app"
+	"AvitoPRService/internal/config"
 	"AvitoPRService/internal/db"
 	errorResponse "AvitoPRService/internal/response/error_response"
 	"net/http"
@@ -12,10 +12,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var secret = os.Getenv("SECRET_STRING")
+var secret = []byte(os.Getenv("SECRET_STRING"))
 
 type Claims struct {
-	UserID int
+	UserID uint
 	jwt.RegisteredClaims
 }
 
@@ -23,7 +23,7 @@ func (c *Claims) Valid() error {
 	return c.Valid()
 }
 
-func NewClaims(userId int) *Claims {
+func NewClaims(userId uint) *Claims {
 	expirationTime := time.Now().Add(24 * time.Hour)
 	return &Claims{
 		UserID: userId,
@@ -33,7 +33,7 @@ func NewClaims(userId int) *Claims {
 	}
 }
 
-func GenerateJWT(userId int) (string, error) {
+func GenerateJWT(userId uint) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, NewClaims(userId))
 	value, err := token.SignedString(secret)
 	if err != nil {
@@ -42,10 +42,10 @@ func GenerateJWT(userId int) (string, error) {
 	return value, nil
 }
 
-func AdminAuthReqired(app *app.App) gin.HandlerFunc {
+func AdminAuthReqired(config *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" || authHeader != "Bearer "+app.Config.AccessToken {
+		if authHeader == "" || authHeader != "Bearer "+config.AccessToken {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse.NewErrorResponse(errorResponse.NOT_FOUND, db.ErrUserNotFound.Error()))
 			return
 		}
