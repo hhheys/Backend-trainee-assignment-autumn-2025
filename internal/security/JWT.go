@@ -1,6 +1,9 @@
 package security
 
 import (
+	"AvitoPRService/internal/app"
+	"AvitoPRService/internal/db"
+	errorResponse "AvitoPRService/internal/response/error_response"
 	"net/http"
 	"os"
 	"time"
@@ -37,6 +40,17 @@ func GenerateJWT(userId int) (string, error) {
 		return "", err
 	}
 	return value, nil
+}
+
+func AdminAuthReqired(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" || authHeader != "Bearer "+app.Config.AccessToken {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse.NewErrorResponse(errorResponse.NOT_FOUND, db.ErrUserNotFound.Error()))
+			return
+		}
+		c.Next()
+	}
 }
 
 func ValidateJWT(c *gin.Context) {
