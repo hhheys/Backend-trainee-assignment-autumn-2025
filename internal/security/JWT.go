@@ -15,7 +15,7 @@ import (
 var secret = []byte(os.Getenv("SECRET_STRING"))
 
 type Claims struct {
-	UserID uint
+	UserID string
 	jwt.RegisteredClaims
 }
 
@@ -23,7 +23,7 @@ func (c *Claims) Valid() error {
 	return c.Valid()
 }
 
-func NewClaims(userId uint) *Claims {
+func NewClaims(userId string) *Claims {
 	expirationTime := time.Now().Add(24 * time.Hour)
 	return &Claims{
 		UserID: userId,
@@ -33,7 +33,7 @@ func NewClaims(userId uint) *Claims {
 	}
 }
 
-func GenerateJWT(userId uint) (string, error) {
+func GenerateJWT(userId string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, NewClaims(userId))
 	value, err := token.SignedString(secret)
 	if err != nil {
