@@ -1,3 +1,4 @@
+// PR Service for Avito backend trainee assignment 2025
 package main
 
 import (
@@ -8,6 +9,8 @@ import (
 	"log"
 
 	"github.com/joho/godotenv"
+
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -19,5 +22,8 @@ func main() {
 
 	r := router.NewRouter(app)
 
-	r.Run(fmt.Sprintf("localhost:%d", config.ServerPort))
+	err := r.Run(fmt.Sprintf("localhost:%d", config.ServerPort))
+	if err != nil {
+		log.Fatalf("Couldn't start an application. %s", err.Error())
+	}
 }

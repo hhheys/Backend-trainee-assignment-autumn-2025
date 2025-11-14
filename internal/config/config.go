@@ -1,3 +1,5 @@
+// Package config provides application configuration structures and
+// utilities for loading, validating, and managing configuration settings.
 package config
 
 import (
@@ -6,8 +8,8 @@ import (
 	"strconv"
 )
 
+// Config is a struct for configuration
 type Config struct {
-
 	// Data for database
 	DatabasePort     int
 	DatabaseUser     string
@@ -25,6 +27,7 @@ type Config struct {
 	AccessToken string
 }
 
+// NewConfig creates a new Config
 func NewConfig() *Config {
 	portDBStr := getEnvOrFatal("DATABASE_PORT")
 	portDB, err := strconv.Atoi(portDBStr)

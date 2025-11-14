@@ -1,3 +1,4 @@
+// Package app - main app structure
 package app
 
 import (
@@ -9,6 +10,7 @@ import (
 	"database/sql"
 )
 
+// App - main app structure
 type App struct {
 	DB *sql.DB
 
@@ -19,6 +21,7 @@ type App struct {
 	Handlers     *handler.Handler
 }
 
+// NewApp - create new app instance
 func NewApp(config *config.Config) *App {
 	dbConn := db.CreateConnection(config)
 	repositories := repository.NewRepository(dbConn)

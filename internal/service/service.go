@@ -1,19 +1,21 @@
+// Package service contains business logic and application services,
+// implementing key operations and interactions between repositories and handlers.
 package service
 
 import (
 	"AvitoPRService/internal/repository"
-	teamService "AvitoPRService/internal/service/team"
-	userService "AvitoPRService/internal/service/user"
 )
 
+// Service defines the business operations related to application.
 type Service struct {
-	UserService userService.UserService
-	TeamService teamService.TeamService
+	UserService UserService
+	TeamService TeamService
 }
 
+// NewService creates a copy of Service
 func NewService(repository *repository.Repository) *Service {
 	return &Service{
-		UserService: userService.NewUserServiceImpl(repository.UserRepository),
-		TeamService: teamService.NewTeamServiceImpl(repository.TeamRepository),
+		UserService: NewUserServiceImpl(repository.UserRepository),
+		TeamService: NewTeamServiceImpl(repository.TeamRepository),
 	}
 }

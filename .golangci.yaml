@@ -1,0 +1,38 @@
+version: "2"
+run:
+  timeout: 2m
+  concurrency: 4
+
+linters:
+  enable:
+    - govet
+    - staticcheck
+    - errcheck
+    - ineffassign
+    - misspell
+    - nakedret
+    - revive
+    - unused
+
+formatters:
+  enable:
+    - gofumpt
+
+exclude:
+  - "_test.go$"
+
+linters-settings:
+  misspell:
+    locale: RU
+  revive:
+    severity: warning
+
+output:
+  format: colored-line-number
+
+issues:
+  exclude-rules:
+    - path: _test\\.go
+      linters:
+        - errcheck
+        - revive

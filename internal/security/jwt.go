@@ -1,9 +1,12 @@
+// Package security provides authentication, authorization,
+// and related security utilities for the application.
 package security
 
 import (
 	"AvitoPRService/internal/config"
 	"AvitoPRService/internal/db"
 	errorResponse "AvitoPRService/internal/response/error_response"
+	"errors"
 	"net/http"
 	"os"
 	"time"
@@ -12,29 +15,37 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// secret is the secret key used to sign the JWT tokens.
 var secret = []byte(os.Getenv("SECRET_STRING"))
 
+// Claims represents the JWT claims.
 type Claims struct {
 	UserID string
 	jwt.RegisteredClaims
 }
 
-func (c *Claims) Valid() error {
-	return c.Valid()
+// Validate validates the Claims.
+func (c *Claims) Validate() error {
+	if c.UserID == "" {
+		return errors.New("userID is required")
+	}
+	return nil
 }
 
-func NewClaims(userId string) *Claims {
+// NewClaims creates a new Claims instance.
+func NewClaims(userID string) *Claims {
 	expirationTime := time.Now().Add(24 * time.Hour)
 	return &Claims{
-		UserID: userId,
+		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
 }
 
-func GenerateJWT(userId string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, NewClaims(userId))
+// GenerateJWT generates a JWT token for the given userID.
+func GenerateJWT(userID string) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, NewClaims(userID))
 	value, err := token.SignedString(secret)
 	if err != nil {
 		return "", err
@@ -42,17 +53,19 @@ func GenerateJWT(userId string) (string, error) {
 	return value, nil
 }
 
-func AdminAuthReqired(config *config.Config) gin.HandlerFunc {
+// AdminAuthRequired is a middleware that checks if the request is authorized.
+func AdminAuthRequired(config *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" || authHeader != "Bearer "+config.AccessToken {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse.NewErrorResponse(errorResponse.NOT_FOUND, db.ErrUserNotFound.Error()))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse.NewErrorResponse(errorResponse.NotFound, db.ErrUserNotFound.Error()))
 			return
 		}
 		c.Next()
 	}
 }
 
+// ValidateJWT validates the JWT token and sets the UserID in the context
 func ValidateJWT(c *gin.Context) {
 	rawToken, err := c.Cookie("access_token")
 	if rawToken == "" || err != nil {
@@ -60,7 +73,7 @@ func ValidateJWT(c *gin.Context) {
 		return
 	}
 
-	token, err := jwt.ParseWithClaims(rawToken, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(rawToken, &Claims{}, func(_ *jwt.Token) (interface{}, error) {
 		return secret, nil
 	})
 	if err != nil && !token.Valid {
@@ -68,6 +81,6 @@ func ValidateJWT(c *gin.Context) {
 		return
 	}
 	claims := token.Claims.(*Claims)
-	c.Set("UserId", claims.UserID)
+	c.Set("UserID", claims.UserID)
 	c.Next()
 }

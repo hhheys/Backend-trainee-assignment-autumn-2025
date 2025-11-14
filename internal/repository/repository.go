@@ -1,19 +1,21 @@
+// Package repository contains interfaces and implementations
+// for data access layers, enabling abstraction over database operations for application entities.
 package repository
 
 import (
-	"AvitoPRService/internal/repository/team"
-	"AvitoPRService/internal/repository/user"
 	"database/sql"
 )
 
+// Repository provides access to the repository.
 type Repository struct {
-	UserRepository user.UserRepository
-	TeamRepository team.TeamRepository
+	UserRepository UserRepository
+	TeamRepository TeamRepository
 }
 
+// NewRepository creates a new Repository.
 func NewRepository(db *sql.DB) *Repository {
 	return &Repository{
-		UserRepository: user.NewUserRepositoryImpl(db),
-		TeamRepository: team.NewTeamRepositoryImpl(db),
+		UserRepository: NewUserRepositoryImpl(db),
+		TeamRepository: NewTeamRepositoryImpl(db),
 	}
 }
