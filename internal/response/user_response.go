@@ -2,10 +2,12 @@ package response
 
 import "AvitoPRService/internal/model"
 
+// UserWrapperResponse represents a wrapper for the user response.
 type UserWrapperResponse struct {
 	User *UserResponse `json:"user"`
 }
 
+// UserResponse represents the user details in the response.
 type UserResponse struct {
 	ID       string  `json:"user_id"`
 	Username string  `json:"username"`
@@ -13,6 +15,7 @@ type UserResponse struct {
 	IsActive bool    `json:"is_active"`
 }
 
+// NewUserResponse converts a model.User to a UserWrapperResponse.
 func NewUserResponse(user *model.User) *UserWrapperResponse {
 	return &UserWrapperResponse{
 		User: &UserResponse{

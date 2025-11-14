@@ -1,5 +1,6 @@
 package model
 
+// User represents a user in the service
 type User struct {
 	ID       string  `json:"user_id"`
 	Username string  `json:"username"`
@@ -7,9 +8,10 @@ type User struct {
 	IsActive bool    `json:"is_active"`
 }
 
-func NewUser(userId string, username string, teamName *string, isActive bool) *User {
+// NewUser creates a new User instance
+func NewUser(userID string, username string, teamName *string, isActive bool) *User {
 	return &User{
-		ID:       userId,
+		ID:       userID,
 		Username: username,
 		TeamName: teamName,
 		IsActive: isActive,

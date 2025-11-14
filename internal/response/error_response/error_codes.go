@@ -1,7 +1,10 @@
 package response
 
 const (
-	BAD_REQUEST           = "BAD_REQUEST"
-	NOT_FOUND             = "NOT_FOUND"
-	INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR"
+	// BadRequest is the error code for bad requests
+	BadRequest = "BadRequest"
+	// NotFound is the error code for not found requests
+	NotFound = "NotFound"
+	// InternalServerError is the error code for internal server errors
+	InternalServerError = "InternalServerError"
 )
