@@ -4,9 +4,9 @@ package main
 import (
 	"AvitoPRService/internal/app"
 	"AvitoPRService/internal/config"
+	"AvitoPRService/internal/config/logger"
 	"AvitoPRService/internal/router"
 	"fmt"
-	"log"
 
 	"github.com/joho/godotenv"
 
@@ -14,8 +14,11 @@ import (
 )
 
 func main() {
+	logger.LogInit()
+	logger.Logger.Info("Starting Avito-PR backend server")
+
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("No .env files found")
+		logger.Logger.Fatalf("Error loading .env file: %s", err.Error())
 	}
 	config := config.NewConfig()
 	app := app.NewApp(config)
@@ -24,6 +27,7 @@ func main() {
 
 	err := r.Run(fmt.Sprintf("localhost:%d", config.ServerPort))
 	if err != nil {
-		log.Fatalf("Couldn't start an application. %s", err.Error())
+		logger.Logger.Fatalf("Failed to start an application with error %s", err.Error())
 	}
+	logger.Logger.Info("Application started successfully")
 }
