@@ -4,11 +4,10 @@ package main
 import (
 	"AvitoPRService/internal/app"
 	"AvitoPRService/internal/config"
+	"AvitoPRService/internal/config/env"
 	"AvitoPRService/internal/config/logger"
 	"AvitoPRService/internal/router"
 	"fmt"
-
-	"github.com/joho/godotenv"
 
 	_ "github.com/lib/pq"
 )
@@ -17,15 +16,13 @@ func main() {
 	logger.LogInit()
 	logger.Logger.Info("Starting Avito-PR backend server")
 
-	if err := godotenv.Load(); err != nil {
-		logger.Logger.Fatalf("Error loading .env file: %s", err.Error())
-	}
-	config := config.NewConfig()
-	app := app.NewApp(config)
+	env.LoadEnv()
+	appConfig := config.NewConfig()
+	application := app.NewApp(appConfig)
 
-	r := router.NewRouter(app)
+	r := router.NewRouter(application)
 
-	err := r.Run(fmt.Sprintf("localhost:%d", config.ServerPort))
+	err := r.Run(fmt.Sprintf("localhost:%d", appConfig.ServerPort))
 	if err != nil {
 		logger.Logger.Fatalf("Failed to start an application with error %s", err.Error())
 	}
