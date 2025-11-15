@@ -2,18 +2,23 @@
 // processing input, managing responses, and connecting services to routes.
 package handler
 
-import "AvitoPRService/internal/service"
+import (
+	"AvitoPRService/internal/repository"
+	"AvitoPRService/internal/service"
+)
 
 // Handler provides handlers for the service.
 type Handler struct {
-	UserHandler *UserHandler
-	TeamHandler *TeamHandler
+	UserHandler        *UserHandler
+	TeamHandler        *TeamHandler
+	PullRequestHandler *PullRequestHandler
 }
 
 // NewHandler returns a new Handler.
-func NewHandler(services *service.Service) *Handler {
+func NewHandler(repositories *repository.Repository, services *service.Service) *Handler {
 	return &Handler{
-		UserHandler: NewUserHandler(services.UserService),
-		TeamHandler: NewTeamHandler(services.TeamService),
+		UserHandler:        NewUserHandler(services.UserService),
+		TeamHandler:        NewTeamHandler(services.TeamService),
+		PullRequestHandler: NewPullRequestHandler(repositories.PullRequestRepository),
 	}
 }

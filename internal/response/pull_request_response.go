@@ -1,0 +1,35 @@
+package response
+
+import (
+	"AvitoPRService/internal/model"
+	"time"
+)
+
+// PullRequestWrapperResponse represents a wrapper for a pull request
+type PullRequestWrapperResponse struct {
+	PullRequest *PullRequestResponse `json:"pr"`
+}
+
+// PullRequestResponse represents a pull request
+type PullRequestResponse struct {
+	ID                string     `json:"pull_request_id"`
+	Name              string     `json:"pull_request_name"`
+	AuthorID          string     `json:"author_id"`
+	Status            string     `json:"status"`
+	AssignedReviewers []string   `json:"assigned_reviewers"`
+	MergedAt          *time.Time `json:"merged_at,omitempty"`
+}
+
+// NewPullRequestResponse creates a new PullRequestResponse
+func NewPullRequestResponse(pullRequest *model.PullRequest) *PullRequestWrapperResponse {
+	return &PullRequestWrapperResponse{
+		PullRequest: &PullRequestResponse{
+			ID:                pullRequest.ID,
+			Name:              pullRequest.Name,
+			AuthorID:          pullRequest.AuthorID,
+			Status:            pullRequest.Status,
+			AssignedReviewers: pullRequest.AssignedReviewers,
+			MergedAt:          pullRequest.MergedAt,
+		},
+	}
+}

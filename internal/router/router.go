@@ -14,6 +14,7 @@ func NewRouter(app *app.App) *gin.Engine {
 
 	NewUserRouter(r, app)
 	NewTeamRouter(r, app)
+	NewPullRequestRouter(r, app)
 
 	return r
 }
