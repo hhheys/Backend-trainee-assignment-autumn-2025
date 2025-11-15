@@ -33,6 +33,6 @@ func NewApp(config *config.Config) *App {
 
 		Repositories: repositories,
 		Services:     services,
-		Handlers:     handler.NewHandler(services),
+		Handlers:     handler.NewHandler(repositories, services),
 	}
 }

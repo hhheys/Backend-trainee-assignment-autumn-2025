@@ -10,6 +10,7 @@ import (
 // UserRepository defines the interface for user-related data operations.
 type UserRepository interface {
 	SetIsActive(userID string, isActive bool) (*model.User, error)
+	FindUserByID(userID string) (*model.User, error)
 }
 
 // UserRepositoryImpl implements the UserRepository interface.
@@ -26,6 +27,19 @@ func NewUserRepositoryImpl(db *sql.DB) *UserRepositoryImpl {
 func (r *UserRepositoryImpl) SetIsActive(userID string, isActive bool) (*model.User, error) {
 	var user model.User
 	err := r.db.QueryRow("UPDATE users SET is_active = $1 WHERE id = $2 RETURNING id, username, team_name, is_active", isActive, userID).Scan(&user.ID, &user.Username, &user.TeamName, &user.IsActive)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, db.ErrUserNotFound
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+// FindUserByID finds a user by their ID.
+func (r *UserRepositoryImpl) FindUserByID(userID string) (*model.User, error) {
+	var user model.User
+	err := r.db.QueryRow("SELECT id, username, team_name, is_active FROM users WHERE id = $1", userID).Scan(&user.ID, &user.Username, &user.TeamName, &user.IsActive)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, db.ErrUserNotFound

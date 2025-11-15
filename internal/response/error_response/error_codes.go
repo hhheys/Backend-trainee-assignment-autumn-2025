@@ -2,9 +2,17 @@ package response
 
 const (
 	// BadRequest is the error code for bad requests
-	BadRequest = "BadRequest"
+	BadRequest = "BAD_REQUEST"
 	// NotFound is the error code for not found requests
-	NotFound = "NotFound"
+	NotFound = "NOT_FOUND"
 	// InternalServerError is the error code for internal server errors
-	InternalServerError = "InternalServerError"
+	InternalServerError = "INTERNAL_SERVER_ERROR"
+	// PullRequestAlreadyExists is the error code for pull request already exists
+	PullRequestAlreadyExists = "PR_EXISTS"
+	// PullRequestAlreadyMerged is the error code for pull request already merged
+	PullRequestAlreadyMerged = "PR_MERGED"
+	// PullRequestNotAssigned is the error code for pull request not assigned
+	PullRequestNotAssigned = "NOT_ASSIGNED"
+	// PullRequestNoCandidate is the error code for pull request no candidate
+	PullRequestNoCandidate = "NO_CANDIDATE"
 )
