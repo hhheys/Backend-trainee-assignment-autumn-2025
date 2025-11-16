@@ -1,7 +1,7 @@
 package response
 
 import (
-	"AvitoPRService/internal/model"
+	"AvitoPRService/internal/model/db"
 	"time"
 )
 
@@ -21,7 +21,7 @@ type PullRequestResponse struct {
 }
 
 // NewPullRequestResponse creates a new PullRequestResponse
-func NewPullRequestResponse(pullRequest *model.PullRequest) *PullRequestWrapperResponse {
+func NewPullRequestResponse(pullRequest *db.PullRequest) *PullRequestWrapperResponse {
 	return &PullRequestWrapperResponse{
 		PullRequest: &PullRequestResponse{
 			ID:                pullRequest.ID,

@@ -1,8 +1,7 @@
-package repository
+package postgres
 
 import (
-	"AvitoPRService/internal/db"
-	"AvitoPRService/internal/model"
+	db2 "AvitoPRService/internal/model/db"
 	"database/sql"
 	"errors"
 	"math/rand"
@@ -26,8 +25,8 @@ func NewPullRequestRepositoryImpl(db *sql.DB, userRepository UserRepository, tea
 }
 
 // FindPullRequestByID finds a pull request by ID.
-func (r *PullRequestRepositoryImpl) FindPullRequestByID(pullRequestID string) (*model.PullRequest, error) {
-	var pullRequest model.PullRequest
+func (r *PullRequestRepositoryImpl) FindPullRequestByID(pullRequestID string) (*db2.PullRequest, error) {
+	var pullRequest db2.PullRequest
 	err := r.db.QueryRow("SELECT id, name, author_id, status, merged_at FROM pull_request WHERE id = $1", pullRequestID).Scan(
 		&pullRequest.ID,
 		&pullRequest.Name,
@@ -37,7 +36,7 @@ func (r *PullRequestRepositoryImpl) FindPullRequestByID(pullRequestID string) (*
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, db.ErrPullRequestNotExists
+			return nil, ErrPullRequestNotExists
 		}
 		return nil, err
 	}
@@ -59,7 +58,7 @@ func (r *PullRequestRepositoryImpl) FindPullRequestByID(pullRequestID string) (*
 }
 
 // CreatePullRequest creates a new pull request.
-func (r *PullRequestRepositoryImpl) CreatePullRequest(pullRequestID string, pullRequestName string, authorID string) (*model.PullRequest, error) {
+func (r *PullRequestRepositoryImpl) CreatePullRequest(pullRequestID string, pullRequestName string, authorID string) (*db2.PullRequest, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return nil, err
@@ -67,7 +66,7 @@ func (r *PullRequestRepositoryImpl) CreatePullRequest(pullRequestID string, pull
 
 	err = tx.QueryRow("SELECT 1 FROM pull_request WHERE id = $1", pullRequestID).Scan()
 	if !errors.Is(err, sql.ErrNoRows) {
-		return nil, db.ErrPullRequestAlreadyExists
+		return nil, ErrPullRequestAlreadyExists
 	}
 
 	author, err := r.userRepository.FindUserByID(authorID)
@@ -79,7 +78,7 @@ func (r *PullRequestRepositoryImpl) CreatePullRequest(pullRequestID string, pull
 		return nil, err
 	}
 	if !author.IsActive {
-		return nil, db.ErrUserIsNotActive
+		return nil, ErrUserIsNotActive
 	}
 
 	if *author.TeamName == "" {
@@ -87,10 +86,10 @@ func (r *PullRequestRepositoryImpl) CreatePullRequest(pullRequestID string, pull
 		if err != nil {
 			return nil, err
 		}
-		return nil, db.ErrUserNoTeamFound
+		return nil, ErrUserNoTeamFound
 	}
 
-	var pullRequest model.PullRequest
+	var pullRequest db2.PullRequest
 	err = tx.QueryRow(
 		"INSERT INTO pull_request(id, name, author_id) VALUES($1, $2, $3) RETURNING id, name, author_id, status",
 		pullRequestID,
@@ -112,7 +111,7 @@ func (r *PullRequestRepositoryImpl) CreatePullRequest(pullRequestID string, pull
 
 	team, err := r.teamRepository.FindTeamByName(*author.TeamName)
 	if err != nil {
-		if errors.Is(err, db.ErrTeamNotExists) {
+		if errors.Is(err, ErrTeamNotExists) {
 			return nil, err
 		}
 		return nil, err
@@ -140,7 +139,7 @@ func (r *PullRequestRepositoryImpl) CreatePullRequest(pullRequestID string, pull
 }
 
 // MergePullRequest merges a pull request.
-func (r *PullRequestRepositoryImpl) MergePullRequest(pullRequestID string) (*model.PullRequest, error) {
+func (r *PullRequestRepositoryImpl) MergePullRequest(pullRequestID string) (*db2.PullRequest, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return nil, err
@@ -186,7 +185,7 @@ func (r *PullRequestRepositoryImpl) pickReviewers(reviewCandidates []string) []s
 }
 
 // ReassignReviewer reassigns a reviewer to a pull request.
-func (r *PullRequestRepositoryImpl) ReassignReviewer(pullRequestID, reviewerID string) (*model.PullRequest, error) {
+func (r *PullRequestRepositoryImpl) ReassignReviewer(pullRequestID, reviewerID string) (*db2.PullRequest, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return nil, err
@@ -202,11 +201,11 @@ func (r *PullRequestRepositoryImpl) ReassignReviewer(pullRequestID, reviewerID s
 		return nil, err
 	}
 	if pr.Status == "MERGED" {
-		return pr, db.ErrPullRequestMergedReassign
+		return pr, ErrPullRequestMergedReassign
 	}
 
 	if !contains(pr.AssignedReviewers, reviewerID) {
-		return pr, db.ErrUserIsNotAssignedToPR
+		return pr, ErrUserIsNotAssignedToPR
 	}
 
 	author, err := r.userRepository.FindUserByID(pr.AuthorID)
@@ -223,7 +222,7 @@ func (r *PullRequestRepositoryImpl) ReassignReviewer(pullRequestID, reviewerID s
           AND id NOT IN ($2, $3)
     `, author.TeamName, pr.AuthorID, reviewerID)
 	if err != nil {
-		return pr, db.ErrNoActiveReplacementCandidates
+		return pr, ErrNoActiveReplacementCandidates
 	}
 
 	var candidates []string
@@ -244,7 +243,7 @@ func (r *PullRequestRepositoryImpl) ReassignReviewer(pullRequestID, reviewerID s
 	}
 
 	if len(candidates) == 0 {
-		return pr, db.ErrNoActiveReplacementCandidates
+		return pr, ErrNoActiveReplacementCandidates
 	}
 
 	// Delete old from DB

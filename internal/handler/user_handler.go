@@ -1,12 +1,11 @@
 package handler
 
 import (
-	"AvitoPRService/internal/db"
-	"AvitoPRService/internal/dto"
-	"AvitoPRService/internal/response"
-	errorResponse "AvitoPRService/internal/response/error_response"
+	"AvitoPRService/internal/model/dto"
+	"AvitoPRService/internal/model/response"
+	response2 "AvitoPRService/internal/model/response/error_response"
+	"AvitoPRService/internal/repository/postgres"
 	"AvitoPRService/internal/security"
-	"AvitoPRService/internal/service"
 	"errors"
 	"net/http"
 
@@ -15,12 +14,12 @@ import (
 
 // UserHandler handler for user requests
 type UserHandler struct {
-	s service.UserService
+	r postgres.UserRepository
 }
 
 // NewUserHandler creates new UserHandler
-func NewUserHandler(s service.UserService) *UserHandler {
-	return &UserHandler{s: s}
+func NewUserHandler(s postgres.UserRepository) *UserHandler {
+	return &UserHandler{r: s}
 }
 
 // SetIsActive sets is_active field of user
@@ -28,17 +27,17 @@ func (h *UserHandler) SetIsActive(c *gin.Context) {
 	var userSetIsActiveDto dto.UserSetIsActiveDto
 	err := c.ShouldBindJSON(&userSetIsActiveDto)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, errorResponse.NewErrorResponse(errorResponse.BadRequest, "validation error"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, response2.NewErrorResponse(response2.BadRequest, "validation error"))
 		return
 	}
 
-	user, err := h.s.SetIsActive(userSetIsActiveDto.UserID, userSetIsActiveDto.IsActive)
+	user, err := h.r.SetIsActive(userSetIsActiveDto.UserID, userSetIsActiveDto.IsActive)
 	if err != nil {
-		if errors.Is(err, db.ErrUserNotFound) {
-			c.JSON(http.StatusNotFound, errorResponse.NewErrorResponse(errorResponse.NotFound, err.Error()))
+		if errors.Is(err, postgres.ErrUserNotFound) {
+			c.JSON(http.StatusNotFound, response2.NewErrorResponse(response2.NotFound, err.Error()))
 			return
 		}
-		c.JSON(http.StatusInternalServerError, errorResponse.NewErrorResponse(errorResponse.InternalServerError, err.Error()))
+		c.JSON(http.StatusInternalServerError, response2.NewErrorResponse(response2.InternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, response.NewUserResponse(user))
@@ -50,12 +49,12 @@ func (h *UserHandler) GetAccessToken(c *gin.Context) {
 	var userGetAccessTokenDto dto.UserGetAccessTokenDto
 	err := c.ShouldBindJSON(&userGetAccessTokenDto)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, errorResponse.NewErrorResponse(errorResponse.BadRequest, "validation error"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, response2.NewErrorResponse(response2.BadRequest, "validation error"))
 		return
 	}
 	token, err := security.GenerateJWT(userGetAccessTokenDto.UserID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, errorResponse.NewErrorResponse(errorResponse.InternalServerError, err.Error()))
+		c.JSON(http.StatusInternalServerError, response2.NewErrorResponse(response2.InternalServerError, err.Error()))
 		return
 	}
 	c.SetCookie("access_token", token, 3600, "/", "", false, true)

@@ -1,11 +1,10 @@
 package handler
 
 import (
-	"AvitoPRService/internal/db"
-	"AvitoPRService/internal/dto"
-	"AvitoPRService/internal/repository"
-	"AvitoPRService/internal/response"
-	errorResponse "AvitoPRService/internal/response/error_response"
+	"AvitoPRService/internal/model/dto"
+	"AvitoPRService/internal/model/response"
+	response2 "AvitoPRService/internal/model/response/error_response"
+	"AvitoPRService/internal/repository/postgres"
 	"errors"
 	"net/http"
 
@@ -14,11 +13,11 @@ import (
 
 // PullRequestHandler handles pull request-related operations.
 type PullRequestHandler struct {
-	r repository.PullRequestRepository
+	r postgres.PullRequestRepository
 }
 
 // NewPullRequestHandler creates a new PullRequestHandler instance.
-func NewPullRequestHandler(r repository.PullRequestRepository) *PullRequestHandler {
+func NewPullRequestHandler(r postgres.PullRequestRepository) *PullRequestHandler {
 	return &PullRequestHandler{r: r}
 }
 
@@ -26,7 +25,7 @@ func NewPullRequestHandler(r repository.PullRequestRepository) *PullRequestHandl
 func (h *PullRequestHandler) CreatePullRequest(c *gin.Context) {
 	var pullRequestCreateDto dto.PullRequestCreateDto
 	if err := c.ShouldBindJSON(&pullRequestCreateDto); err != nil {
-		c.JSON(http.StatusBadRequest, errorResponse.NewErrorResponse(errorResponse.BadRequest, err.Error()))
+		c.JSON(http.StatusBadRequest, response2.NewErrorResponse(response2.BadRequest, err.Error()))
 	}
 	pullRequest, err := h.r.CreatePullRequest(
 		pullRequestCreateDto.PullRequestID,
@@ -34,17 +33,17 @@ func (h *PullRequestHandler) CreatePullRequest(c *gin.Context) {
 		pullRequestCreateDto.AuthorID,
 	)
 	if err != nil {
-		if errors.Is(err, db.ErrUserNotFound) {
-			c.JSON(http.StatusNotFound, errorResponse.NewErrorResponse(errorResponse.BadRequest, err.Error()))
+		if errors.Is(err, postgres.ErrUserNotFound) {
+			c.JSON(http.StatusNotFound, response2.NewErrorResponse(response2.BadRequest, err.Error()))
 			return
-		} else if errors.Is(err, db.ErrUserNoTeamFound) {
-			c.JSON(http.StatusNotFound, errorResponse.NewErrorResponse(errorResponse.BadRequest, err.Error()))
+		} else if errors.Is(err, postgres.ErrUserNoTeamFound) {
+			c.JSON(http.StatusNotFound, response2.NewErrorResponse(response2.BadRequest, err.Error()))
 			return
-		} else if errors.Is(err, db.ErrPullRequestAlreadyExists) {
-			c.JSON(http.StatusConflict, errorResponse.NewErrorResponse(errorResponse.PullRequestAlreadyExists, err.Error()))
+		} else if errors.Is(err, postgres.ErrPullRequestAlreadyExists) {
+			c.JSON(http.StatusConflict, response2.NewErrorResponse(response2.PullRequestAlreadyExists, err.Error()))
 			return
 		}
-		c.JSON(http.StatusInternalServerError, errorResponse.NewErrorResponse(errorResponse.InternalServerError, err.Error()))
+		c.JSON(http.StatusInternalServerError, response2.NewErrorResponse(response2.InternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusCreated, response.NewPullRequestResponse(pullRequest))
@@ -54,15 +53,15 @@ func (h *PullRequestHandler) CreatePullRequest(c *gin.Context) {
 func (h *PullRequestHandler) MergePullRequest(c *gin.Context) {
 	var pullRequestMergeDto dto.PullRequestMergeDto
 	if err := c.ShouldBindJSON(&pullRequestMergeDto); err != nil {
-		c.JSON(http.StatusBadRequest, errorResponse.NewErrorResponse(errorResponse.BadRequest, err.Error()))
+		c.JSON(http.StatusBadRequest, response2.NewErrorResponse(response2.BadRequest, err.Error()))
 	}
 	pr, err := h.r.MergePullRequest(pullRequestMergeDto.PullRequestID)
 	if err != nil {
-		if errors.Is(err, db.ErrPullRequestNotExists) {
-			c.JSON(http.StatusNotFound, errorResponse.NewErrorResponse(errorResponse.NotFound, err.Error()))
+		if errors.Is(err, postgres.ErrPullRequestNotExists) {
+			c.JSON(http.StatusNotFound, response2.NewErrorResponse(response2.NotFound, err.Error()))
 			return
 		}
-		c.JSON(http.StatusInternalServerError, errorResponse.NewErrorResponse(errorResponse.InternalServerError, err.Error()))
+		c.JSON(http.StatusInternalServerError, response2.NewErrorResponse(response2.InternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusCreated, response.NewPullRequestResponse(pr))
@@ -72,21 +71,21 @@ func (h *PullRequestHandler) MergePullRequest(c *gin.Context) {
 func (h *PullRequestHandler) ReassignReviewer(c *gin.Context) {
 	var prReassignDto dto.PullRequestReassignDto
 	if err := c.ShouldBindJSON(&prReassignDto); err != nil {
-		c.JSON(http.StatusBadRequest, errorResponse.NewErrorResponse(errorResponse.BadRequest, err.Error()))
+		c.JSON(http.StatusBadRequest, response2.NewErrorResponse(response2.BadRequest, err.Error()))
 	}
 	pr, err := h.r.ReassignReviewer(prReassignDto.PullRequestID, prReassignDto.OldReviewerID)
 	if err != nil {
-		if errors.Is(err, db.ErrPullRequestMergedReassign) {
-			c.JSON(http.StatusConflict, errorResponse.NewErrorResponse(errorResponse.PullRequestAlreadyMerged, err.Error()))
+		if errors.Is(err, postgres.ErrPullRequestMergedReassign) {
+			c.JSON(http.StatusConflict, response2.NewErrorResponse(response2.PullRequestAlreadyMerged, err.Error()))
 			return
-		} else if errors.Is(err, db.ErrUserIsNotAssignedToPR) {
-			c.JSON(http.StatusConflict, errorResponse.NewErrorResponse(errorResponse.PullRequestNotAssigned, err.Error()))
+		} else if errors.Is(err, postgres.ErrUserIsNotAssignedToPR) {
+			c.JSON(http.StatusConflict, response2.NewErrorResponse(response2.PullRequestNotAssigned, err.Error()))
 			return
-		} else if errors.Is(err, db.ErrNoActiveReplacementCandidates) {
-			c.JSON(http.StatusConflict, errorResponse.NewErrorResponse(errorResponse.PullRequestNoCandidate, err.Error()))
+		} else if errors.Is(err, postgres.ErrNoActiveReplacementCandidates) {
+			c.JSON(http.StatusConflict, response2.NewErrorResponse(response2.PullRequestNoCandidate, err.Error()))
 			return
 		}
-		c.JSON(http.StatusInternalServerError, errorResponse.NewErrorResponse(errorResponse.InternalServerError, err.Error()))
+		c.JSON(http.StatusInternalServerError, response2.NewErrorResponse(response2.InternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusCreated, response.NewPullRequestResponse(pr))

@@ -1,11 +1,10 @@
 package handler
 
 import (
-	"AvitoPRService/internal/db"
-	"AvitoPRService/internal/dto"
-	"AvitoPRService/internal/response"
-	errorResponse "AvitoPRService/internal/response/error_response"
-	"AvitoPRService/internal/service"
+	"AvitoPRService/internal/model/dto"
+	"AvitoPRService/internal/model/response"
+	response2 "AvitoPRService/internal/model/response/error_response"
+	"AvitoPRService/internal/repository/postgres"
 	"errors"
 	"fmt"
 	"net/http"
@@ -15,12 +14,12 @@ import (
 
 // TeamHandler provides methods for working with teams
 type TeamHandler struct {
-	s service.TeamService
+	r postgres.TeamRepository
 }
 
 // NewTeamHandler creates a new TeamHandler
-func NewTeamHandler(s service.TeamService) *TeamHandler {
-	return &TeamHandler{s: s}
+func NewTeamHandler(s postgres.TeamRepository) *TeamHandler {
+	return &TeamHandler{r: s}
 }
 
 // AddTeam adds a new team
@@ -28,16 +27,16 @@ func (h *TeamHandler) AddTeam(c *gin.Context) {
 	var teamCreateDto dto.TeamCreateDto
 	err := c.ShouldBindJSON(&teamCreateDto)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, errorResponse.NewErrorResponse(errorResponse.BadRequest, "validation error"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, response2.NewErrorResponse(response2.BadRequest, "validation error"))
 		return
 	}
-	createTeam, err := h.s.CreateTeam(&teamCreateDto)
+	createTeam, err := h.r.CreateTeam(teamCreateDto.TeamName, teamCreateDto.Members)
 	if err != nil {
-		if errors.Is(err, db.ErrTeamExists) {
-			c.JSON(http.StatusBadRequest, errorResponse.NewErrorResponse(errorResponse.NotFound, fmt.Sprintf(err.Error(), teamCreateDto.TeamName)))
+		if errors.Is(err, postgres.ErrTeamExists) {
+			c.JSON(http.StatusBadRequest, response2.NewErrorResponse(response2.NotFound, fmt.Sprintf(err.Error(), teamCreateDto.TeamName)))
 			return
 		}
-		c.JSON(http.StatusInternalServerError, errorResponse.NewErrorResponse(errorResponse.InternalServerError, err.Error()))
+		c.JSON(http.StatusInternalServerError, response2.NewErrorResponse(response2.InternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusAccepted, response.NewTeamCreateResponse(createTeam))
@@ -48,14 +47,14 @@ func (h *TeamHandler) FindByName(c *gin.Context) {
 	var teamGetByNameDto dto.TeamGetByNameDto
 	err := c.ShouldBindQuery(&teamGetByNameDto)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, errorResponse.NewErrorResponse(errorResponse.BadRequest, "validation error"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, response2.NewErrorResponse(response2.BadRequest, "validation error"))
 		return
 	}
 
-	foundedTeam, err := h.s.FindTeamByName(teamGetByNameDto.TeamName)
+	foundedTeam, err := h.r.FindTeamByName(teamGetByNameDto.TeamName)
 	if err != nil {
-		if errors.Is(err, db.ErrTeamNotExists) {
-			c.JSON(http.StatusNotFound, errorResponse.NewErrorResponse(errorResponse.NotFound, err.Error()))
+		if errors.Is(err, postgres.ErrTeamNotExists) {
+			c.JSON(http.StatusNotFound, response2.NewErrorResponse(response2.NotFound, err.Error()))
 			return
 		}
 	}

@@ -1,6 +1,4 @@
-// Package db provides functionality for database connections,
-// migrations, and error handling within the application.
-package db
+package postgres
 
 import "errors"
 

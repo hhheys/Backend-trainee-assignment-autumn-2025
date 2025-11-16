@@ -1,9 +1,8 @@
-package repository
+package postgres
 
 import (
-	"AvitoPRService/internal/db"
-	"AvitoPRService/internal/dto"
-	"AvitoPRService/internal/model"
+	db2 "AvitoPRService/internal/model/db"
+	"AvitoPRService/internal/model/dto"
 	"database/sql"
 	"errors"
 	"log"
@@ -20,7 +19,7 @@ func NewTeamRepositoryImpl(db *sql.DB) *TeamRepositoryImpl {
 }
 
 // CreateTeam creates a new team
-func (r *TeamRepositoryImpl) CreateTeam(teamName string, members []dto.TeamMemberDto) (*model.Team, error) {
+func (r *TeamRepositoryImpl) CreateTeam(teamName string, members []dto.TeamMemberDto) (*db2.Team, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return nil, err
@@ -38,7 +37,7 @@ func (r *TeamRepositoryImpl) CreateTeam(teamName string, members []dto.TeamMembe
 		return nil, err
 	}
 	if teamExists {
-		return nil, db.ErrTeamExists
+		return nil, ErrTeamExists
 	}
 
 	// Team creation
@@ -49,8 +48,8 @@ func (r *TeamRepositoryImpl) CreateTeam(teamName string, members []dto.TeamMembe
 
 	// Link users to the team
 	var (
-		user        model.User
-		teamMembers = make([]model.User, 0, len(members))
+		user        db2.User
+		teamMembers = make([]db2.User, 0, len(members))
 	)
 	for _, member := range members {
 		err := tx.QueryRow("UPDATE users SET team_name = $1 WHERE id = $2 RETURNING id, username, team_name, is_active", teamName, member.ID).Scan(&user.ID, &user.Username, &user.TeamName, &user.IsActive)
@@ -63,7 +62,7 @@ func (r *TeamRepositoryImpl) CreateTeam(teamName string, members []dto.TeamMembe
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
-	return model.NewTeam(teamName, teamMembers), nil
+	return db2.NewTeam(teamName, teamMembers), nil
 }
 
 // IsTeamExists checks if team exists
@@ -76,7 +75,7 @@ func (r *TeamRepositoryImpl) IsTeamExists(teamName string) (bool, error) {
 }
 
 // FindTeamByName finds team by name
-func (r *TeamRepositoryImpl) FindTeamByName(teamName string) (*model.Team, error) {
+func (r *TeamRepositoryImpl) FindTeamByName(teamName string) (*db2.Team, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return nil, err
@@ -93,7 +92,7 @@ func (r *TeamRepositoryImpl) FindTeamByName(teamName string) (*model.Team, error
 		return nil, err
 	}
 	if !teamExists {
-		return nil, db.ErrTeamNotExists
+		return nil, ErrTeamNotExists
 	}
 
 	rows, err := tx.Query(
@@ -101,10 +100,10 @@ func (r *TeamRepositoryImpl) FindTeamByName(teamName string) (*model.Team, error
 		teamName,
 	)
 	if err != nil {
-		return &model.Team{}, err
+		return &db2.Team{}, err
 	}
-	var teamMembers []model.User
-	var user model.User
+	var teamMembers []db2.User
+	var user db2.User
 	for rows.Next() {
 		err := rows.Scan(&user.ID, &user.Username, &user.IsActive)
 		if err != nil {
@@ -112,5 +111,5 @@ func (r *TeamRepositoryImpl) FindTeamByName(teamName string) (*model.Team, error
 		}
 		teamMembers = append(teamMembers, user)
 	}
-	return model.NewTeam(teamName, teamMembers), nil
+	return db2.NewTeam(teamName, teamMembers), nil
 }

@@ -2,7 +2,9 @@
 // including error response structures and other payloads returned by the server.
 package response
 
-import "AvitoPRService/internal/model"
+import (
+	"AvitoPRService/internal/model/db"
+)
 
 // TeamCreateResponse represents response for team creation
 type TeamCreateResponse struct {
@@ -18,7 +20,7 @@ type TeamMemberResponse struct {
 }
 
 // NewTeamMemberResponse creates new TeamMemberResponse
-func NewTeamMemberResponse(users []model.User) []TeamMemberResponse {
+func NewTeamMemberResponse(users []db.User) []TeamMemberResponse {
 	result := make([]TeamMemberResponse, len(users))
 	for i, user := range users {
 		result[i] = TeamMemberResponse{
@@ -31,7 +33,7 @@ func NewTeamMemberResponse(users []model.User) []TeamMemberResponse {
 }
 
 // NewTeamCreateResponse creates new TeamCreateResponse
-func NewTeamCreateResponse(team *model.Team) *TeamCreateResponse {
+func NewTeamCreateResponse(team *db.Team) *TeamCreateResponse {
 	return &TeamCreateResponse{
 		TeamName: team.TeamName,
 		Members:  NewTeamMemberResponse(team.Members),

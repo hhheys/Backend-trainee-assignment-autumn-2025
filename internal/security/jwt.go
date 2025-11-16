@@ -4,8 +4,8 @@ package security
 
 import (
 	"AvitoPRService/internal/config"
-	"AvitoPRService/internal/db"
-	errorResponse "AvitoPRService/internal/response/error_response"
+	"AvitoPRService/internal/model/response/error_response"
+	"AvitoPRService/internal/repository/postgres"
 	"errors"
 	"net/http"
 	"os"
@@ -58,7 +58,7 @@ func AdminAuthRequired(config *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" || authHeader != "Bearer "+config.AccessToken {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse.NewErrorResponse(errorResponse.NotFound, db.ErrUserNotFound.Error()))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response.NewErrorResponse(response.NotFound, postgres.ErrUserNotFound.Error()))
 			return
 		}
 		c.Next()

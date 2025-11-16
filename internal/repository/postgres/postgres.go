@@ -1,4 +1,4 @@
-package db
+package postgres
 
 import (
 	"AvitoPRService/internal/config"

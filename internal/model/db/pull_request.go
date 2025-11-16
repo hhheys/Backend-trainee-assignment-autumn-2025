@@ -1,6 +1,6 @@
-// Package model contains core data structures used in the application,
+// Package db contains core data structures used in the application,
 // including definitions of users, teams, and pull requests.
-package model
+package db
 
 import "time"
 

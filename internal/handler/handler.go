@@ -1,10 +1,9 @@
-// Package handler provides HTTP request handlers for the application's API,
+// Package handler provides HTTP request handlers for the application'r API,
 // processing input, managing responses, and connecting services to routes.
 package handler
 
 import (
-	"AvitoPRService/internal/repository"
-	"AvitoPRService/internal/service"
+	"AvitoPRService/internal/repository/postgres"
 )
 
 // Handler provides handlers for the service.
@@ -15,10 +14,10 @@ type Handler struct {
 }
 
 // NewHandler returns a new Handler.
-func NewHandler(repositories *repository.Repository, services *service.Service) *Handler {
+func NewHandler(repositories *postgres.Repository) *Handler {
 	return &Handler{
-		UserHandler:        NewUserHandler(services.UserService),
-		TeamHandler:        NewTeamHandler(services.TeamService),
+		UserHandler:        NewUserHandler(repositories.UserRepository),
+		TeamHandler:        NewTeamHandler(repositories.TeamRepository),
 		PullRequestHandler: NewPullRequestHandler(repositories.PullRequestRepository),
 	}
 }

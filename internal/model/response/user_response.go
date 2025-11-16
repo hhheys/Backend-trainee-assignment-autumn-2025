@@ -1,6 +1,8 @@
 package response
 
-import "AvitoPRService/internal/model"
+import (
+	"AvitoPRService/internal/model/db"
+)
 
 // UserWrapperResponse represents a wrapper for the user response.
 type UserWrapperResponse struct {
@@ -16,7 +18,7 @@ type UserResponse struct {
 }
 
 // NewUserResponse converts a model.User to a UserWrapperResponse.
-func NewUserResponse(user *model.User) *UserWrapperResponse {
+func NewUserResponse(user *db.User) *UserWrapperResponse {
 	return &UserWrapperResponse{
 		User: &UserResponse{
 			ID:       user.ID,

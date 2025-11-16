@@ -1,4 +1,4 @@
-package model
+package db
 
 // Team represents a team in the service
 type Team struct {

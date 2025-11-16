@@ -1,6 +1,6 @@
-// Package repository contains interfaces and implementations
+// Package postgres contains interfaces and implementations
 // for data access layers, enabling abstraction over database operations for application entities.
-package repository
+package postgres
 
 import (
 	"database/sql"
