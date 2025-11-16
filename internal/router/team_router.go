@@ -6,10 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// NewTeamRouter creates a new team router endpoints.
 func NewTeamRouter(r *gin.Engine, app *app.App) {
 	g := r.Group("/team")
 
-	g.POST("/add")
-	g.GET("/get")
-
+	g.POST("/add", app.Handlers.TeamHandler.AddTeam)
+	g.GET("/get", app.Handlers.TeamHandler.FindByName)
 }
