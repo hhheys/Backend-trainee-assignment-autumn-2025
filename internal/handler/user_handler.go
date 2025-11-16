@@ -43,6 +43,29 @@ func (h *UserHandler) SetIsActive(c *gin.Context) {
 	c.JSON(http.StatusOK, response.NewUserResponse(user))
 }
 
+// GetReview returns user reviews
+func (h *UserHandler) GetReview(c *gin.Context) {
+	var userGetPRsDto dto.UserGetPRsDto
+	err := c.ShouldBindQuery(&userGetPRsDto)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response2.NewErrorResponse(response2.BadRequest, "validation error"))
+		return
+	}
+	reviews, err := h.r.GetUserReviews(userGetPRsDto.UserID)
+	if err != nil {
+		if errors.Is(err, postgres.ErrUserNotFound) {
+			c.JSON(http.StatusNotFound, response2.NewErrorResponse(response2.NotFound, err.Error()))
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, response2.NewErrorResponse(response2.InternalServerError, err.Error()))
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, response.NewUserAssignedReviewsResponse(userGetPRsDto.UserID, reviews))
+	return
+}
+
 // GetAccessToken Временная версия, "заглушка". В проде реализовать адекватную авторизацию.
 // GetAccessToken returns access token for user
 func (h *UserHandler) GetAccessToken(c *gin.Context) {

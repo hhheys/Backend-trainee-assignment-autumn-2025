@@ -10,3 +10,8 @@ type UserSetIsActiveDto struct {
 type UserGetAccessTokenDto struct {
 	UserID string `json:"user_id" binding:"required"`
 }
+
+// UserGetPRsDto is a DTO for getting the PRs of a user.
+type UserGetPRsDto struct {
+	UserID string `form:"user_id" binding:"required"`
+}

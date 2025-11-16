@@ -12,6 +12,7 @@ func NewUserRouter(r *gin.Engine, app *app.App) {
 	g := r.Group("/users")
 
 	g.POST("/setIsActive", security.AdminAuthRequired(app.Config), app.Handlers.UserHandler.SetIsActive)
+	g.GET("/getReview", app.Handlers.UserHandler.GetReview)
 
 	// Временное решение для получения JWT токена пользователя.
 	g.POST("/getAccessToken", app.Handlers.UserHandler.GetAccessToken)

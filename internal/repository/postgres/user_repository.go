@@ -10,6 +10,7 @@ import (
 type UserRepository interface {
 	SetIsActive(userID string, isActive bool) (*db2.User, error)
 	FindUserByID(userID string) (*db2.User, error)
+	GetUserReviews(userID string) ([]*db2.PullRequest, error)
 }
 
 // UserRepositoryImpl implements the UserRepository interface.
@@ -46,4 +47,35 @@ func (r *UserRepositoryImpl) FindUserByID(userID string) (*db2.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *UserRepositoryImpl) GetUserReviews(userID string) ([]*db2.PullRequest, error) {
+	_, err := r.FindUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.db.Query(`
+		SELECT 
+			pr.id,
+			pr.name,
+			pr.author_id,
+			pr.status
+		FROM pull_request_reviewer r
+		JOIN pull_request AS pr ON r.pull_request_id = pr.id
+		WHERE r.reviewer_id = $1
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var pullRequests []*db2.PullRequest
+
+	for rows.Next() {
+		var pr db2.PullRequest
+		if err := rows.Scan(&pr.ID, &pr.Name, &pr.AuthorID, &pr.Status); err != nil {
+			continue
+		}
+		pullRequests = append(pullRequests, &pr)
+	}
+	return pullRequests, nil
 }

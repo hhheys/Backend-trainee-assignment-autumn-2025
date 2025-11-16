@@ -17,6 +17,12 @@ type UserResponse struct {
 	IsActive bool    `json:"is_active"`
 }
 
+// UserAssignedReviewsResponse represents the response for assigned reviews.
+type UserAssignedReviewsResponse struct {
+	UserID       string                 `json:"user_id"`
+	PullRequests []*PullRequestResponse `json:"pull_requests"`
+}
+
 // NewUserResponse converts a model.User to a UserWrapperResponse.
 func NewUserResponse(user *db.User) *UserWrapperResponse {
 	return &UserWrapperResponse{
@@ -26,5 +32,13 @@ func NewUserResponse(user *db.User) *UserWrapperResponse {
 			TeamName: user.TeamName,
 			IsActive: user.IsActive,
 		},
+	}
+}
+
+// NewUserAssignedReviewsResponse creates a new UserAssignedReviewsResponse.
+func NewUserAssignedReviewsResponse(userID string, pullRequests []*db.PullRequest) *UserAssignedReviewsResponse {
+	return &UserAssignedReviewsResponse{
+		UserID:       userID,
+		PullRequests: NewPullRequestResponses(pullRequests),
 	}
 }

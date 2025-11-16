@@ -16,7 +16,7 @@ type PullRequestResponse struct {
 	Name              string     `json:"pull_request_name"`
 	AuthorID          string     `json:"author_id"`
 	Status            string     `json:"status"`
-	AssignedReviewers []string   `json:"assigned_reviewers"`
+	AssignedReviewers []string   `json:"assigned_reviewers,omitempty"`
 	MergedAt          *time.Time `json:"merged_at,omitempty"`
 }
 
@@ -32,4 +32,22 @@ func NewPullRequestResponse(pullRequest *db.PullRequest) *PullRequestWrapperResp
 			MergedAt:          pullRequest.MergedAt,
 		},
 	}
+}
+
+// NewPullRequestResponses creates a new slice of PullRequestResponse
+func NewPullRequestResponses(pullRequests []*db.PullRequest) []*PullRequestResponse {
+	var responses []*PullRequestResponse
+
+	for _, pr := range pullRequests {
+		responses = append(responses, &PullRequestResponse{
+			ID:                pr.ID,
+			Name:              pr.Name,
+			AuthorID:          pr.AuthorID,
+			Status:            pr.Status,
+			AssignedReviewers: pr.AssignedReviewers,
+			MergedAt:          pr.MergedAt,
+		})
+	}
+
+	return responses
 }
