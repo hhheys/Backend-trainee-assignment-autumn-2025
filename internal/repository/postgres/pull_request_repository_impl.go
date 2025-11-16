@@ -171,17 +171,16 @@ func (r *PullRequestRepositoryImpl) MergePullRequest(pullRequestID string) (*db2
 }
 
 func (r *PullRequestRepositoryImpl) pickReviewers(reviewCandidates []string) []string {
-	var reviewers []string
 	if len(reviewCandidates) == 0 {
-		reviewers = make([]string, 0)
-		return reviewers
-	} else if len(reviewCandidates) <= 2 {
+		return []string{}
+	}
+	if len(reviewCandidates) <= 2 {
 		return reviewCandidates
 	}
-	rand.Shuffle(len(reviewers), func(i, j int) {
-		reviewers[i], reviewers[j] = reviewers[j], reviewers[i]
+	rand.Shuffle(len(reviewCandidates), func(i, j int) {
+		reviewCandidates[i], reviewCandidates[j] = reviewCandidates[j], reviewCandidates[i]
 	})
-	return reviewers[:2]
+	return reviewCandidates[:2]
 }
 
 // ReassignReviewer reassigns a reviewer to a pull request.

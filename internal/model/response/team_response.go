@@ -35,7 +35,7 @@ func NewTeamMemberResponse(users []db.User) []TeamMemberResponse {
 // NewTeamCreateResponse creates new TeamCreateResponse
 func NewTeamCreateResponse(team *db.Team) *TeamCreateResponse {
 	return &TeamCreateResponse{
-		TeamName: team.TeamName,
+		TeamName: team.Name,
 		Members:  NewTeamMemberResponse(team.Members),
 	}
 }
