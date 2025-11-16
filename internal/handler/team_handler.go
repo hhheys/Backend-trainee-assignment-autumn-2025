@@ -5,8 +5,6 @@ import (
 	"AvitoPRService/internal/model/response"
 	response2 "AvitoPRService/internal/model/response/error_response"
 	"AvitoPRService/internal/repository/postgres"
-	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,38 +23,36 @@ func NewTeamHandler(s postgres.TeamRepository) *TeamHandler {
 // AddTeam adds a new team
 func (h *TeamHandler) AddTeam(c *gin.Context) {
 	var teamCreateDto dto.TeamCreateDto
-	err := c.ShouldBindJSON(&teamCreateDto)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, response2.NewErrorResponse(response2.BadRequest, "validation error"))
-		return
-	}
-	createTeam, err := h.r.CreateTeam(teamCreateDto.TeamName, teamCreateDto.Members)
-	if err != nil {
-		if errors.Is(err, postgres.ErrTeamExists) {
-			c.JSON(http.StatusBadRequest, response2.NewErrorResponse(response2.NotFound, fmt.Sprintf(err.Error(), teamCreateDto.TeamName)))
+	if err := c.ShouldBindJSON(&teamCreateDto); err != nil {
+		if status, errResp := response2.HandleError(err); errResp != nil {
+			c.JSON(status, errResp)
 			return
 		}
-		c.JSON(http.StatusInternalServerError, response2.NewErrorResponse(response2.InternalServerError, err.Error()))
+	}
+
+	createTeam, err := h.r.CreateTeam(teamCreateDto.TeamName, teamCreateDto.Members)
+	if status, errResp := response2.HandleError(err); errResp != nil {
+		c.JSON(status, errResp)
 		return
 	}
-	c.JSON(http.StatusAccepted, response.NewTeamCreateResponse(createTeam))
+
+	c.JSON(http.StatusCreated, response.NewTeamCreateResponse(createTeam))
 }
 
 // FindByName finds a team by name
 func (h *TeamHandler) FindByName(c *gin.Context) {
 	var teamGetByNameDto dto.TeamGetByNameDto
 	err := c.ShouldBindQuery(&teamGetByNameDto)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, response2.NewErrorResponse(response2.BadRequest, "validation error"))
+	if status, errResp := response2.HandleError(err); errResp != nil {
+		c.JSON(status, errResp)
 		return
 	}
 
 	foundedTeam, err := h.r.FindTeamByName(teamGetByNameDto.TeamName)
-	if err != nil {
-		if errors.Is(err, postgres.ErrTeamNotExists) {
-			c.JSON(http.StatusNotFound, response2.NewErrorResponse(response2.NotFound, err.Error()))
-			return
-		}
+	if status, errResp := response2.HandleError(err); errResp != nil {
+		c.JSON(status, errResp)
+		return
 	}
+
 	c.JSON(http.StatusAccepted, response.NewTeamCreateResponse(foundedTeam))
 }

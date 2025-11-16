@@ -14,7 +14,7 @@ type TeamCreateResponse struct {
 
 // TeamMemberResponse represents response for team members
 type TeamMemberResponse struct {
-	ID       string `json:"user_id"`
+	ID       string `json:"user_id" binding:"required,uuid"`
 	Username string `json:"username"`
 	IsActive bool   `json:"is_active"`
 }

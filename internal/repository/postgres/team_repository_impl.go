@@ -6,6 +6,8 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+
+	uuid "github.com/google/uuid"
 )
 
 // TeamRepositoryImpl implements TeamRepository
@@ -52,7 +54,13 @@ func (r *TeamRepositoryImpl) CreateTeam(teamName string, members []dto.TeamMembe
 		teamMembers = make([]db2.User, 0, len(members))
 	)
 	for _, member := range members {
-		err := tx.QueryRow("UPDATE users SET team_name = $1 WHERE id = $2 RETURNING id, username, team_name, is_active", teamName, member.ID).Scan(&user.ID, &user.Username, &user.TeamName, &user.IsActive)
+		_, err := uuid.Parse(member.ID)
+		if err != nil {
+			log.Printf("invalid UUID: %s", member.ID)
+			continue
+		}
+
+		err = tx.QueryRow("UPDATE users SET team_name = $1 WHERE id = $2 RETURNING id, username, team_name, is_active", teamName, member.ID).Scan(&user.ID, &user.Username, &user.TeamName, &user.IsActive)
 		if err != nil {
 			continue
 		}

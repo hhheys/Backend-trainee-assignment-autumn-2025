@@ -23,4 +23,6 @@ var (
 	ErrUserIsNotAssignedToPR = errors.New("reviewer is not assigned to this PR")
 	// ErrNoActiveReplacementCandidates occurs when no active replacement candidates exist in a team.
 	ErrNoActiveReplacementCandidates = errors.New("no active replacement candidate in team")
+	// ErrInternalServerError is returned when an internal server error occurs.
+	ErrInternalServerError = errors.New("internal server error")
 )

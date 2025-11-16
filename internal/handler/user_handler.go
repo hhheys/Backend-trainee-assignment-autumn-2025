@@ -6,7 +6,6 @@ import (
 	response2 "AvitoPRService/internal/model/response/error_response"
 	"AvitoPRService/internal/repository/postgres"
 	"AvitoPRService/internal/security"
-	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -33,12 +32,10 @@ func (h *UserHandler) SetIsActive(c *gin.Context) {
 
 	user, err := h.r.SetIsActive(userSetIsActiveDto.UserID, userSetIsActiveDto.IsActive)
 	if err != nil {
-		if errors.Is(err, postgres.ErrUserNotFound) {
-			c.JSON(http.StatusNotFound, response2.NewErrorResponse(response2.NotFound, err.Error()))
+		if status, errResp := response2.HandleError(err); errResp != nil {
+			c.JSON(status, errResp)
 			return
 		}
-		c.JSON(http.StatusInternalServerError, response2.NewErrorResponse(response2.InternalServerError, err.Error()))
-		return
 	}
 	c.JSON(http.StatusOK, response.NewUserResponse(user))
 }
@@ -53,11 +50,8 @@ func (h *UserHandler) GetReview(c *gin.Context) {
 	}
 	reviews, err := h.r.GetUserReviews(userGetPRsDto.UserID)
 	if err != nil {
-		if errors.Is(err, postgres.ErrUserNotFound) {
-			c.JSON(http.StatusNotFound, response2.NewErrorResponse(response2.NotFound, err.Error()))
-			return
-		} else {
-			c.JSON(http.StatusInternalServerError, response2.NewErrorResponse(response2.InternalServerError, err.Error()))
+		if status, errResp := response2.HandleError(err); errResp != nil {
+			c.JSON(status, errResp)
 			return
 		}
 	}
@@ -71,15 +65,17 @@ func (h *UserHandler) GetReview(c *gin.Context) {
 func (h *UserHandler) GetAccessToken(c *gin.Context) {
 	var userGetAccessTokenDto dto.UserGetAccessTokenDto
 	err := c.ShouldBindJSON(&userGetAccessTokenDto)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, response2.NewErrorResponse(response2.BadRequest, "validation error"))
+	if status, errResp := response2.HandleError(err); errResp != nil {
+		c.JSON(status, errResp)
 		return
 	}
+
 	token, err := security.GenerateJWT(userGetAccessTokenDto.UserID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, response2.NewErrorResponse(response2.InternalServerError, err.Error()))
+	if status, errResp := response2.HandleError(err); errResp != nil {
+		c.JSON(status, errResp)
 		return
 	}
+
 	c.SetCookie("access_token", token, 3600, "/", "", false, true)
 	c.AbortWithStatus(http.StatusAccepted)
 }

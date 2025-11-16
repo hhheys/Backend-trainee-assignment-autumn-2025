@@ -9,7 +9,7 @@ type TeamCreateDto struct {
 
 // TeamMemberDto represents a member of a team.
 type TeamMemberDto struct {
-	ID       string `json:"user_id" binding:"required"`
+	ID       string `json:"user_id" binding:"required,uuid4"`
 	Username string `json:"username"`
 	IsActive bool   `json:"is_active"`
 }

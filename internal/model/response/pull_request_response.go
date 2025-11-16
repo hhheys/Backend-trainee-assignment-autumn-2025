@@ -37,6 +37,9 @@ func NewPullRequestResponse(pullRequest *db.PullRequest) *PullRequestWrapperResp
 // NewPullRequestResponses creates a new slice of PullRequestResponse
 func NewPullRequestResponses(pullRequests []*db.PullRequest) []*PullRequestResponse {
 	var responses []*PullRequestResponse
+	if len(pullRequests) == 0 {
+		return []*PullRequestResponse{}
+	}
 
 	for _, pr := range pullRequests {
 		responses = append(responses, &PullRequestResponse{
