@@ -51,7 +51,7 @@ func (h *PullRequestHandler) MergePullRequest(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, response.NewPullRequestResponse(pr))
+	c.JSON(http.StatusOK, response.NewPullRequestResponse(pr))
 }
 
 // ReassignReviewer handles the reassignment of a reviewer to a pull request.
@@ -66,5 +66,5 @@ func (h *PullRequestHandler) ReassignReviewer(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, response.NewPullRequestResponse(pr))
+	c.JSON(http.StatusOK, response.NewPullRequestResponse(pr))
 }
