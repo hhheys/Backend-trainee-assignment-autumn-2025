@@ -54,5 +54,5 @@ func (h *TeamHandler) FindByName(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusAccepted, response.NewTeamCreateResponse(foundedTeam))
+	c.JSON(http.StatusOK, response.NewTeamCreateResponse(foundedTeam))
 }
